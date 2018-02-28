@@ -8,8 +8,8 @@ The main fuzzing logic is implemented by `libFuzzer` which is part of the LLVM p
 
 ```
 cd ~/src
-git clone https://github.com/llvm-mirror/llvm
-cd llvm/lib/Fuzzer
+git clone https://github.com/llvm-mirror/compiler-rt
+cd compiler-rt/lib/fuzzer
 ./build.sh
 ```
 

@@ -10,6 +10,8 @@ fi
 lang="$1"
 testcase="$2"
 
-out="out"
-ASAN_OPTIONS="quarantine_size_mb=10:detect_leaks=1" UBSAN="print_stacktrace=1:halt_on_error=1" \
-  "${out}/${lang}_fuzzer" "$testcase" -timeout=1 -runs=100
+out=$(cd $(dirname $0)/../out && pwd)
+export ASAN_OPTIONS="quarantine_size_mb=10:detect_leaks=1:symbolize=1"
+export UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=1:symbolize=1"
+
+"${out}/${lang}_fuzzer" "$testcase" -timeout=10 -runs=1 -rss_limit_mb=1024
