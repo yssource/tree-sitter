@@ -389,7 +389,7 @@ where
         parser.set_language(language)?;
         let tree = parser
             .parse(source, None)
-            .ok_or_else(|| format!("Tree-sitter: failed to parse"))?;
+            .ok_or_else(|| format!("Tree-sitter: failed to parse. cancellation_flag: {}", cancellation_flag.map_or(0, |f| f.load(Ordering::Relaxed))))?;
         Ok(Self {
             parser,
             source,
