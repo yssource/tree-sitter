@@ -59,7 +59,7 @@ static void ts_lexer__get_chunk(Lexer *self) {
   self->chunk = self->input.read(
     self->input.payload,
     self->current_position.bytes,
-    self->current_position.extent,
+    &self->current_position.extent,
     &self->chunk_size
   );
   if (!self->chunk_size) {

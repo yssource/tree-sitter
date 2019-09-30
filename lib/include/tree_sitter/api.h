@@ -65,7 +65,7 @@ typedef struct {
 
 typedef struct {
   void *payload;
-  const char *(*read)(void *payload, uint32_t byte_index, TSPoint position, uint32_t *bytes_read);
+  const char *(*read)(void *payload, uint32_t byte_index, const TSPoint *position, uint32_t *bytes_read);
   TSInputEncoding encoding;
 } TSInput;
 
@@ -233,7 +233,7 @@ const TSRange *ts_parser_included_ranges(
 TSTree *ts_parser_parse(
   TSParser *self,
   const TSTree *old_tree,
-  TSInput input
+  const TSInput *input
 );
 
 /**
@@ -309,7 +309,7 @@ const size_t *ts_parser_cancellation_flag(const TSParser *self);
  * previously assigned, the caller is responsible for releasing any memory
  * owned by the previous logger.
  */
-void ts_parser_set_logger(TSParser *self, TSLogger logger);
+void ts_parser_set_logger(TSParser *self, const TSLogger *logger);
 
 /**
  * Get the parser's current logger.
@@ -550,14 +550,14 @@ TSNode ts_node_first_named_child_for_byte(const TSNode *, uint32_t);
  * or (row, column) positions.
  */
 TSNode ts_node_descendant_for_byte_range(const TSNode *, uint32_t, uint32_t);
-TSNode ts_node_descendant_for_point_range(const TSNode *, TSPoint, TSPoint);
+TSNode ts_node_descendant_for_point_range(const TSNode *, const TSPoint *, const TSPoint *);
 
 /**
  * Get the smallest named node within this node that spans the given range of
  * bytes or (row, column) positions.
  */
 TSNode ts_node_named_descendant_for_byte_range(const TSNode *, uint32_t, uint32_t);
-TSNode ts_node_named_descendant_for_point_range(const TSNode *, TSPoint, TSPoint);
+TSNode ts_node_named_descendant_for_point_range(const TSNode *, const TSPoint *, const TSPoint *);
 
 /**
  * Edit the node to keep it in-sync with source code that has been edited.
@@ -781,7 +781,7 @@ void ts_query_cursor_exec(TSQueryCursor *, const TSQuery *, const TSNode *);
  * will be executed.
  */
 void ts_query_cursor_set_byte_range(TSQueryCursor *, uint32_t, uint32_t);
-void ts_query_cursor_set_point_range(TSQueryCursor *, TSPoint, TSPoint);
+void ts_query_cursor_set_point_range(TSQueryCursor *, const TSPoint *, const TSPoint *);
 
 /**
  * Advance to the next match of the currently running query.

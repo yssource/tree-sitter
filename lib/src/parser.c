@@ -111,7 +111,7 @@ typedef struct {
 static const char *ts_string_input_read(
   void *_self,
   uint32_t byte,
-  TSPoint _,
+  const TSPoint *_,
   uint32_t *length
 ) {
   TSStringInput *self = (TSStringInput *)_self;
@@ -1736,8 +1736,8 @@ TSLogger ts_parser_logger(const TSParser *self) {
   return self->lexer.logger;
 }
 
-void ts_parser_set_logger(TSParser *self, TSLogger logger) {
-  self->lexer.logger = logger;
+void ts_parser_set_logger(TSParser *self, const TSLogger *logger) {
+  self->lexer.logger = *logger;
 }
 
 #ifndef TREE_SITTER_NO_IO
@@ -1808,11 +1808,11 @@ void ts_parser_reset(TSParser *self) {
 TSTree *ts_parser_parse(
   TSParser *self,
   const TSTree *old_tree,
-  TSInput input
+  const TSInput *input
 ) {
-  if (!self->language || !input.read) return NULL;
+  if (!self->language || !input->read) return NULL;
 
-  ts_lexer_set_input(&self->lexer, input);
+  ts_lexer_set_input(&self->lexer, *input);
 
   array_clear(&self->included_range_differences);
   self->included_range_difference_index = 0;
@@ -1912,14 +1912,20 @@ TSTree *ts_parser_parse_string(
   return ts_parser_parse_string_encoding(self, old_tree, string, length, TSInputEncodingUTF8);
 }
 
-TSTree *ts_parser_parse_string_encoding(TSParser *self, const TSTree *old_tree,
-                                        const char *string, uint32_t length, TSInputEncoding encoding) {
-  TSStringInput input = {string, length};
-  return ts_parser_parse(self, old_tree, (TSInput) {
-    &input,
+TSTree *ts_parser_parse_string_encoding(
+  TSParser *self,
+  const TSTree *old_tree,
+  const char *string,
+  uint32_t length,
+  TSInputEncoding encoding
+) {
+  TSStringInput string_input = {string, length};
+  TSInput input = (TSInput) {
+    &string_input,
     ts_string_input_read,
     encoding,
-  });
+  };
+  return ts_parser_parse(self, old_tree, &input);
 }
 
 #undef LOG

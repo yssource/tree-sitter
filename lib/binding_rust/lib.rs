@@ -309,23 +309,27 @@ impl Parser {
             };
         }
 
-        unsafe { ffi::ts_parser_set_logger(self.0.as_ptr(), c_logger) };
+        unsafe { ffi::ts_parser_set_logger(self.0.as_ptr(), &c_logger as *const ffi::TSLogger) };
     }
 
     /// Set the destination to which the parser should write debugging graphs
     /// during parsing. The graphs are formatted in the DOT language. You may want
     /// to pipe these graphs directly to a `dot(1)` process in order to generate
     /// SVG output.
-    #[cfg(unix)]
+    #[cfg(all(unix, not(target_arch = "wasm32")))]
     pub fn print_dot_graphs(&mut self, file: &impl AsRawFd) {
         let fd = file.as_raw_fd();
         unsafe { ffi::ts_parser_print_dot_graphs(self.0.as_ptr(), ffi::dup(fd)) }
     }
 
     /// Stop the parser from printing debugging graphs while parsing.
+    #[cfg(all(unix, not(target_arch = "wasm32")))]
     pub fn stop_printing_dot_graphs(&mut self) {
         unsafe { ffi::ts_parser_print_dot_graphs(self.0.as_ptr(), -1) }
     }
+
+    #[cfg(not(all(unix, not(target_arch = "wasm32"))))]
+    pub fn stop_printing_dot_graphs(&mut self) {}
 
     /// Parse a slice of UTF8 text.
     ///
@@ -397,11 +401,14 @@ impl Parser {
         unsafe extern "C" fn read<'a, T: AsRef<[u8]>, F: FnMut(usize, Point) -> T>(
             payload: *mut c_void,
             byte_offset: u32,
-            position: ffi::TSPoint,
+            position: *const ffi::TSPoint,
             bytes_read: *mut u32,
         ) -> *const c_char {
             let (callback, text) = (payload as *mut (&mut F, Option<T>)).as_mut().unwrap();
-            *text = Some(callback(byte_offset as usize, position.into()));
+            *text = Some(callback(
+                byte_offset as usize,
+                position.as_ref().unwrap().clone().into(),
+            ));
             let slice = text.as_ref().unwrap().as_ref();
             *bytes_read = slice.len() as u32;
             return slice.as_ptr() as *const c_char;
@@ -415,7 +422,8 @@ impl Parser {
 
         let c_old_tree = old_tree.map_or(ptr::null_mut(), |t| t.0.as_ptr());
         unsafe {
-            let c_new_tree = ffi::ts_parser_parse(self.0.as_ptr(), c_old_tree, c_input);
+            let c_new_tree =
+                ffi::ts_parser_parse(self.0.as_ptr(), c_old_tree, &c_input as *const ffi::TSInput);
             NonNull::new(c_new_tree).map(Tree)
         }
     }
@@ -447,10 +455,11 @@ impl Parser {
         unsafe extern "C" fn read<'a, T: AsRef<[u16]>, F: FnMut(usize, Point) -> T>(
             payload: *mut c_void,
             byte_offset: u32,
-            position: ffi::TSPoint,
+            position: *const ffi::TSPoint,
             bytes_read: *mut u32,
         ) -> *const c_char {
             let (callback, text) = (payload as *mut (&mut F, Option<T>)).as_mut().unwrap();
+            let position = position.as_ref().unwrap();
             *text = Some(callback(
                 (byte_offset / 2) as usize,
                 Point {
@@ -471,7 +480,8 @@ impl Parser {
 
         let c_old_tree = old_tree.map_or(ptr::null_mut(), |t| t.0.as_ptr());
         unsafe {
-            let c_new_tree = ffi::ts_parser_parse(self.0.as_ptr(), c_old_tree, c_input);
+            let c_new_tree =
+                ffi::ts_parser_parse(self.0.as_ptr(), c_old_tree, &c_input as *const ffi::TSInput);
             NonNull::new(c_new_tree).map(Tree)
         }
     }
@@ -901,14 +911,22 @@ impl<'tree> Node<'tree> {
     /// Get the smallest node within this node that spans the given range.
     pub fn descendant_for_point_range(&self, start: Point, end: Point) -> Option<Self> {
         Self::new(unsafe {
-            ffi::ts_node_descendant_for_point_range(self.p(), start.into(), end.into())
+            ffi::ts_node_descendant_for_point_range(
+                self.p(),
+                &start.into() as *const ffi::TSPoint,
+                &end.into() as *const ffi::TSPoint,
+            )
         })
     }
 
     /// Get the smallest named node within this node that spans the given range.
     pub fn named_descendant_for_point_range(&self, start: Point, end: Point) -> Option<Self> {
         Self::new(unsafe {
-            ffi::ts_node_named_descendant_for_point_range(self.p(), start.into(), end.into())
+            ffi::ts_node_named_descendant_for_point_range(
+                self.p(),
+                &start.into() as *const ffi::TSPoint,
+                &end.into() as *const ffi::TSPoint,
+            )
         })
     }
 
@@ -1444,7 +1462,11 @@ impl QueryCursor {
     /// Set the range in which the query will be executed, in terms of rows and columns.
     pub fn set_point_range(&mut self, start: Point, end: Point) -> &mut Self {
         unsafe {
-            ffi::ts_query_cursor_set_point_range(self.0.as_ptr(), start.into(), end.into());
+            ffi::ts_query_cursor_set_point_range(
+                self.0.as_ptr(),
+                &start.into() as *const ffi::TSPoint,
+                &end.into() as *const ffi::TSPoint,
+            );
         }
         self
     }

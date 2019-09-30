@@ -366,8 +366,8 @@ static inline TSNode ts_node__descendant_for_byte_range(
 
 static inline TSNode ts_node__descendant_for_point_range(
   const TSNode *self,
-  TSPoint range_start,
-  TSPoint range_end,
+  const TSPoint *range_start,
+  const TSPoint *range_end,
   bool include_anonymous
 ) {
   TSNode node = *self;
@@ -384,12 +384,12 @@ static inline TSNode ts_node__descendant_for_point_range(
 
       // The end of this node must extend far enough forward to touch
       // the end of the range and exceed the start of the range.
-      if (point_lt(node_end, range_end)) continue;
-      if (point_lte(node_end, range_start)) continue;
+      if (point_lt(node_end, *range_end)) continue;
+      if (point_lte(node_end, *range_start)) continue;
 
       // The start of this node must extend far enough backward to
       // touch the start of the range.
-      if (point_lt(range_start, ts_node_start_point(&child))) break;
+      if (point_lt(*range_start, ts_node_start_point(&child))) break;
 
       node = child;
       if (ts_node__is_relevant(&node, include_anonymous)) {
@@ -644,16 +644,16 @@ TSNode ts_node_named_descendant_for_byte_range(
 
 TSNode ts_node_descendant_for_point_range(
   const TSNode *self,
-  TSPoint start,
-  TSPoint end
+  const TSPoint *start,
+  const TSPoint *end
 ) {
   return ts_node__descendant_for_point_range(self, start, end, true);
 }
 
 TSNode ts_node_named_descendant_for_point_range(
   const TSNode *self,
-  TSPoint start,
-  TSPoint end
+  const TSPoint *start,
+  const TSPoint *end
 ) {
   return ts_node__descendant_for_point_range(self, start, end, false);
 }

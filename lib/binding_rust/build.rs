@@ -26,6 +26,14 @@ fn main() {
         config.define("TREE_SITTER_TEST", "");
     }
 
+    if env::var("TARGET")
+        .unwrap_or(String::new())
+        .starts_with("wasm")
+    {
+        config.define("TREE_SITTER_NO_IO", "");
+        config.define("NDEBUG", "1");
+    }
+
     let src_path = Path::new("src");
     for entry in fs::read_dir(&src_path).unwrap() {
         let entry = entry.unwrap();

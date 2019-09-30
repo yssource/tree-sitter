@@ -962,15 +962,16 @@ void ts_query_cursor_set_byte_range(
 
 void ts_query_cursor_set_point_range(
   TSQueryCursor *self,
-  TSPoint start_point,
-  TSPoint end_point
+  const TSPoint *start_point,
+  const TSPoint *end_point
 ) {
-  if (end_point.row == 0 && end_point.column == 0) {
-    start_point = POINT_ZERO;
-    end_point = POINT_MAX;
+  if (end_point->row == 0 && end_point->column == 0) {
+    self->start_point = POINT_ZERO;
+    self->end_point = POINT_MAX;
+  } else {
+    self->start_point = *start_point;
+    self->end_point = *end_point;
   }
-  self->start_point = start_point;
-  self->end_point = end_point;
 }
 
 // Search through all of the in-progress states, and find the captured
