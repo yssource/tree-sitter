@@ -8,7 +8,6 @@ extern "C" {
 #include "./array.h"
 #include "./subtree.h"
 #include "./error_costs.h"
-#include <stdio.h>
 
 typedef struct Stack Stack;
 
@@ -122,7 +121,11 @@ void ts_stack_remove_version(Stack *, StackVersion);
 
 void ts_stack_clear(Stack *);
 
+#ifndef TREE_SITTER_NO_IO
+#include <stdio.h>
+
 bool ts_stack_print_dot_graph(Stack *, const TSLanguage *, FILE *);
+#endif
 
 typedef void (*StackIterateCallback)(void *, TSStateId, uint32_t);
 

@@ -25,6 +25,13 @@
     ts_parser__log(self);                                                                   \
   }
 
+#ifdef TREE_SITTER_NO_IO
+
+#define LOG_STACK(...)
+#define LOG_TREE(...)
+
+#else
+
 #define LOG_STACK()                                                              \
   if (self->dot_graph_file) {                                                    \
     ts_stack_print_dot_graph(self->stack, self->language, self->dot_graph_file); \
@@ -36,6 +43,8 @@
     ts_subtree_print_dot_graph(tree, self->language, self->dot_graph_file); \
     fputs("\n", self->dot_graph_file);                                      \
   }
+
+#endif
 
 #define SYM_NAME(symbol) ts_language_symbol_name(self->language, symbol)
 
@@ -65,7 +74,7 @@ struct TSParser {
   TokenCache token_cache;
   ReusableNode reusable_node;
   void *external_scanner_payload;
-  FILE *dot_graph_file;
+  void *dot_graph_file;
   TSClock end_clock;
   TSDuration timeout_duration;
   unsigned accept_count;
@@ -126,14 +135,16 @@ static void ts_parser__log(TSParser *self) {
     );
   }
 
+  #ifndef TREE_SITTER_NO_IO
   if (self->dot_graph_file) {
-    fprintf(self->dot_graph_file, "graph {\nlabel=\"");
+    fprintf((FILE *)self->dot_graph_file, "graph {\nlabel=\"");
     for (char *c = &self->lexer.debug_buffer[0]; *c != 0; c++) {
-      if (*c == '"') fputc('\\', self->dot_graph_file);
-      fputc(*c, self->dot_graph_file);
+      if (*c == '"') fputc('\\', (FILE *)self->dot_graph_file);
+      fputc(*c, (FILE *)self->dot_graph_file);
     }
-    fprintf(self->dot_graph_file, "\"\n}\n\n");
+    fprintf((FILE *)self->dot_graph_file, "\"\n}\n\n");
   }
+  #endif
 }
 
 static bool ts_parser__breakdown_top_of_stack(
@@ -1729,6 +1740,8 @@ void ts_parser_set_logger(TSParser *self, TSLogger logger) {
   self->lexer.logger = logger;
 }
 
+#ifndef TREE_SITTER_NO_IO
+
 void ts_parser_print_dot_graphs(TSParser *self, int fd) {
   if (self->dot_graph_file) {
     fclose(self->dot_graph_file);
@@ -1740,6 +1753,8 @@ void ts_parser_print_dot_graphs(TSParser *self, int fd) {
     self->dot_graph_file = NULL;
   }
 }
+
+#endif
 
 void ts_parser_halt_on_error(TSParser *self, bool should_halt_on_error) {
   self->halt_on_error = should_halt_on_error;

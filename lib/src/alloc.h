@@ -7,7 +7,6 @@ extern "C" {
 
 #include <stdlib.h>
 #include <stdbool.h>
-#include <stdio.h>
 
 #if defined(TREE_SITTER_TEST)
 
@@ -43,28 +42,34 @@ static inline bool ts_toggle_allocation_recording(bool value) {
 
 static inline void *ts_malloc(size_t size) {
   void *result = malloc(size);
+  #ifndef TREE_SITTER_NO_IO
   if (size > 0 && !result) {
     fprintf(stderr, "tree-sitter failed to allocate %lu bytes", size);
     exit(1);
   }
+  #endif
   return result;
 }
 
 static inline void *ts_calloc(size_t count, size_t size) {
   void *result = calloc(count, size);
+  #ifndef TREE_SITTER_NO_IO
   if (count > 0 && !result) {
     fprintf(stderr, "tree-sitter failed to allocate %lu bytes", count * size);
     exit(1);
   }
+  #endif
   return result;
 }
 
 static inline void *ts_realloc(void *buffer, size_t size) {
   void *result = realloc(buffer, size);
+  #ifndef TREE_SITTER_NO_IO
   if (size > 0 && !result) {
     fprintf(stderr, "tree-sitter failed to reallocate %lu bytes", size);
     exit(1);
   }
+  #endif
   return result;
 }
 

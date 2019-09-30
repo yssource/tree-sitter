@@ -5,7 +5,6 @@
 extern "C" {
 #endif
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -389,10 +388,15 @@ TSRange *ts_tree_get_changed_ranges(
   uint32_t *length
 );
 
+#ifndef TREE_SITTER_NO_IO
+#include <stdio.h>
+
 /**
  * Write a DOT graph describing the syntax tree to the given file.
  */
 void ts_tree_print_dot_graph(const TSTree *, FILE *);
+
+#endif
 
 /******************/
 /* Section - Node */

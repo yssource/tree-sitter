@@ -782,18 +782,6 @@ static size_t ts_subtree__write_char_to_string(char *s, size_t n, int32_t c) {
     return snprintf(s, n, "%d", c);
 }
 
-static void ts_subtree__write_dot_string(FILE *f, const char *string) {
-  for (const char *c = string; *c; c++) {
-    if (*c == '"') {
-      fputs("\\\"", f);
-    } else if (*c == '\n') {
-      fputs("\\n", f);
-    } else {
-      fputc(*c, f);
-    }
-  }
-}
-
 static const char *ROOT_FIELD = "__ROOT__";
 
 static size_t ts_subtree__write_to_string(
@@ -916,6 +904,20 @@ char *ts_subtree_string(
   return result;
 }
 
+#ifndef TREE_SITTER_NO_IO
+
+static void ts_subtree__write_dot_string(FILE *f, const char *string) {
+  for (const char *c = string; *c; c++) {
+    if (*c == '"') {
+      fputs("\\\"", f);
+    } else if (*c == '\n') {
+      fputs("\\n", f);
+    } else {
+      fputc(*c, f);
+    }
+  }
+}
+
 void ts_subtree__print_dot_graph(const Subtree *self, uint32_t start_offset,
                                  const TSLanguage *language, TSSymbol alias_symbol,
                                  FILE *f) {
@@ -973,6 +975,8 @@ void ts_subtree_print_dot_graph(Subtree self, const TSLanguage *language, FILE *
   ts_subtree__print_dot_graph(&self, 0, language, 0, f);
   fprintf(f, "}\n");
 }
+
+#endif
 
 bool ts_subtree_external_scanner_state_eq(Subtree self, Subtree other) {
   const ExternalScannerState *state1 = &empty_state;

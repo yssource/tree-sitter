@@ -108,9 +108,15 @@ TSRange *ts_tree_get_changed_ranges(const TSTree *self, const TSTree *other, uin
   return result;
 }
 
+#ifndef TREE_SITTER_NO_IO
+
+#include <stdio.h>
+
 void ts_tree_print_dot_graph(const TSTree *self, FILE *file) {
   ts_subtree_print_dot_graph(self->root, self->language, file);
 }
+
+#endif
 
 TSNode ts_tree_get_cached_parent(const TSTree *self, const TSNode *node) {
   for (uint32_t i = 0; i < self->parent_cache_size; i++) {

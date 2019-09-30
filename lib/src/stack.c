@@ -5,7 +5,6 @@
 #include "./stack.h"
 #include "./length.h"
 #include <assert.h>
-#include <stdio.h>
 
 #define MAX_LINK_COUNT 8
 #define MAX_NODE_POOL_SIZE 50
@@ -712,6 +711,10 @@ void ts_stack_clear(Stack *self) {
   }));
 }
 
+#ifndef TREE_SITTER_NO_IO
+
+#include <stdio.h>
+
 bool ts_stack_print_dot_graph(Stack *self, const TSLanguage *language, FILE *f) {
   array_reserve(&self->iterators, 32);
   bool was_recording_allocations = ts_toggle_allocation_recording(false);
@@ -842,5 +845,7 @@ bool ts_stack_print_dot_graph(Stack *self, const TSLanguage *language, FILE *f) 
   ts_toggle_allocation_recording(was_recording_allocations);
   return true;
 }
+
+#endif
 
 #undef inline

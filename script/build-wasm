@@ -88,7 +88,7 @@ $emcc                                \
   -s "EXPORTED_FUNCTIONS=${exports}" \
   $emscripten_flags                  \
   -std=c99                           \
-  -D 'fprintf(...)='                 \
+  -D TREE_SITTER_NO_IO               \
   -D NDEBUG=                         \
   -I lib/src                         \
   -I lib/include                     \

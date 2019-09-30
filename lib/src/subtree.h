@@ -7,7 +7,6 @@ extern "C" {
 
 #include <limits.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include "./length.h"
 #include "./array.h"
 #include "./error_costs.h"
@@ -138,7 +137,12 @@ void ts_subtree_set_children(MutableSubtree, Subtree *, uint32_t, const TSLangua
 void ts_subtree_balance(Subtree, SubtreePool *, const TSLanguage *);
 Subtree ts_subtree_edit(Subtree, const TSInputEdit *edit, SubtreePool *);
 char *ts_subtree_string(Subtree, const TSLanguage *, bool include_all);
+
+#ifndef TREE_SITTER_NO_IO
+#include <stdio.h>
 void ts_subtree_print_dot_graph(Subtree, const TSLanguage *, FILE *);
+#endif
+
 Subtree ts_subtree_last_external_token(Subtree);
 bool ts_subtree_external_scanner_state_eq(Subtree, Subtree);
 
