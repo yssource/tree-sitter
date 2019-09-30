@@ -625,12 +625,12 @@ impl<'tree> Node<'tree> {
 
     /// Get this node's type as a numerical id.
     pub fn kind_id(&self) -> u16 {
-        unsafe { ffi::ts_node_symbol(self.0) }
+        unsafe { ffi::ts_node_symbol(self.p()) }
     }
 
     /// Get this node's type as a string.
     pub fn kind(&self) -> &'static str {
-        unsafe { CStr::from_ptr(ffi::ts_node_type(self.0)) }
+        unsafe { CStr::from_ptr(ffi::ts_node_type(self.p())) }
             .to_str()
             .unwrap()
     }
@@ -645,7 +645,7 @@ impl<'tree> Node<'tree> {
     /// Named nodes correspond to named rules in the grammar, whereas *anonymous* nodes
     /// correspond to string literals in the grammar.
     pub fn is_named(&self) -> bool {
-        unsafe { ffi::ts_node_is_named(self.0) }
+        unsafe { ffi::ts_node_is_named(self.p()) }
     }
 
     /// Check if this node is *extra*.
@@ -653,18 +653,18 @@ impl<'tree> Node<'tree> {
     /// Extra nodes represent things like comments, which are not required the grammar,
     /// but can appear anywhere.
     pub fn is_extra(&self) -> bool {
-        unsafe { ffi::ts_node_is_extra(self.0) }
+        unsafe { ffi::ts_node_is_extra(self.p()) }
     }
 
     /// Check if this node has been edited.
     pub fn has_changes(&self) -> bool {
-        unsafe { ffi::ts_node_has_changes(self.0) }
+        unsafe { ffi::ts_node_has_changes(self.p()) }
     }
 
     /// Check if this node represents a syntax error or contains any syntax errors anywhere
     /// within it.
     pub fn has_error(&self) -> bool {
-        unsafe { ffi::ts_node_has_error(self.0) }
+        unsafe { ffi::ts_node_has_error(self.p()) }
     }
 
     /// Check if this node represents a syntax error.
@@ -680,17 +680,17 @@ impl<'tree> Node<'tree> {
     /// Missing nodes are inserted by the parser in order to recover from certain kinds of
     /// syntax errors.
     pub fn is_missing(&self) -> bool {
-        unsafe { ffi::ts_node_is_missing(self.0) }
+        unsafe { ffi::ts_node_is_missing(self.p()) }
     }
 
     /// Get the byte offsets where this node starts.
     pub fn start_byte(&self) -> usize {
-        unsafe { ffi::ts_node_start_byte(self.0) as usize }
+        unsafe { ffi::ts_node_start_byte(self.p()) as usize }
     }
 
     /// Get the byte offsets where this node end.
     pub fn end_byte(&self) -> usize {
-        unsafe { ffi::ts_node_end_byte(self.0) as usize }
+        unsafe { ffi::ts_node_end_byte(self.p()) as usize }
     }
 
     /// Get the byte range of source code that this node represents.
@@ -711,13 +711,13 @@ impl<'tree> Node<'tree> {
 
     /// Get this node's start position in terms of rows and columns.
     pub fn start_position(&self) -> Point {
-        let result = unsafe { ffi::ts_node_start_point(self.0) };
+        let result = unsafe { ffi::ts_node_start_point(self.p()) };
         result.into()
     }
 
     /// Get this node's end position in terms of rows and columns.
     pub fn end_position(&self) -> Point {
-        let result = unsafe { ffi::ts_node_end_point(self.0) };
+        let result = unsafe { ffi::ts_node_end_point(self.p()) };
         result.into()
     }
 
@@ -728,12 +728,12 @@ impl<'tree> Node<'tree> {
     /// if you might be iterating over a long list of children, you should use
     /// [Node::children] instead.
     pub fn child(&self, i: usize) -> Option<Self> {
-        Self::new(unsafe { ffi::ts_node_child(self.0, i as u32) })
+        Self::new(unsafe { ffi::ts_node_child(self.p(), i as u32) })
     }
 
     /// Get this node's number of children.
     pub fn child_count(&self) -> usize {
-        unsafe { ffi::ts_node_child_count(self.0) as usize }
+        unsafe { ffi::ts_node_child_count(self.p()) as usize }
     }
 
     /// Get this node's *named* child at the given index.
@@ -743,14 +743,14 @@ impl<'tree> Node<'tree> {
     /// if you might be iterating over a long list of children, you should use
     /// [Node::named_children] instead.
     pub fn named_child<'a>(&'a self, i: usize) -> Option<Self> {
-        Self::new(unsafe { ffi::ts_node_named_child(self.0, i as u32) })
+        Self::new(unsafe { ffi::ts_node_named_child(self.p(), i as u32) })
     }
 
     /// Get this node's number of *named* children.
     ///
     /// See also [Node::is_named].
     pub fn named_child_count(&self) -> usize {
-        unsafe { ffi::ts_node_named_child_count(self.0) as usize }
+        unsafe { ffi::ts_node_named_child_count(self.p()) as usize }
     }
 
     /// Get the first child with the given field name.
@@ -761,7 +761,7 @@ impl<'tree> Node<'tree> {
         let field_name = field_name.as_ref();
         Self::new(unsafe {
             ffi::ts_node_child_by_field_name(
-                self.0,
+                self.p(),
                 field_name.as_ptr() as *const c_char,
                 field_name.len() as u32,
             )
@@ -773,7 +773,7 @@ impl<'tree> Node<'tree> {
     /// See also [child_by_field_name](Node::child_by_field_name). You can convert a field name to
     /// an id using [Language::field_id_for_name].
     pub fn child_by_field_id(&self, field_id: u16) -> Option<Self> {
-        Self::new(unsafe { ffi::ts_node_child_by_field_id(self.0, field_id) })
+        Self::new(unsafe { ffi::ts_node_child_by_field_id(self.p(), field_id) })
     }
 
     /// Iterate over this node's children.
@@ -861,59 +861,59 @@ impl<'tree> Node<'tree> {
 
     /// Get this node's immediate parent.
     pub fn parent(&self) -> Option<Self> {
-        Self::new(unsafe { ffi::ts_node_parent(self.0) })
+        Self::new(unsafe { ffi::ts_node_parent(self.p()) })
     }
 
     /// Get this node's next sibling.
     pub fn next_sibling(&self) -> Option<Self> {
-        Self::new(unsafe { ffi::ts_node_next_sibling(self.0) })
+        Self::new(unsafe { ffi::ts_node_next_sibling(self.p()) })
     }
 
     /// Get this node's previous sibling.
     pub fn prev_sibling(&self) -> Option<Self> {
-        Self::new(unsafe { ffi::ts_node_prev_sibling(self.0) })
+        Self::new(unsafe { ffi::ts_node_prev_sibling(self.p()) })
     }
 
     /// Get this node's next named sibling.
     pub fn next_named_sibling(&self) -> Option<Self> {
-        Self::new(unsafe { ffi::ts_node_next_named_sibling(self.0) })
+        Self::new(unsafe { ffi::ts_node_next_named_sibling(self.p()) })
     }
 
     /// Get this node's previous named sibling.
     pub fn prev_named_sibling(&self) -> Option<Self> {
-        Self::new(unsafe { ffi::ts_node_prev_named_sibling(self.0) })
+        Self::new(unsafe { ffi::ts_node_prev_named_sibling(self.p()) })
     }
 
     /// Get the smallest node within this node that spans the given range.
     pub fn descendant_for_byte_range(&self, start: usize, end: usize) -> Option<Self> {
         Self::new(unsafe {
-            ffi::ts_node_descendant_for_byte_range(self.0, start as u32, end as u32)
+            ffi::ts_node_descendant_for_byte_range(self.p(), start as u32, end as u32)
         })
     }
 
     /// Get the smallest named node within this node that spans the given range.
     pub fn named_descendant_for_byte_range(&self, start: usize, end: usize) -> Option<Self> {
         Self::new(unsafe {
-            ffi::ts_node_named_descendant_for_byte_range(self.0, start as u32, end as u32)
+            ffi::ts_node_named_descendant_for_byte_range(self.p(), start as u32, end as u32)
         })
     }
 
     /// Get the smallest node within this node that spans the given range.
     pub fn descendant_for_point_range(&self, start: Point, end: Point) -> Option<Self> {
         Self::new(unsafe {
-            ffi::ts_node_descendant_for_point_range(self.0, start.into(), end.into())
+            ffi::ts_node_descendant_for_point_range(self.p(), start.into(), end.into())
         })
     }
 
     /// Get the smallest named node within this node that spans the given range.
     pub fn named_descendant_for_point_range(&self, start: Point, end: Point) -> Option<Self> {
         Self::new(unsafe {
-            ffi::ts_node_named_descendant_for_point_range(self.0, start.into(), end.into())
+            ffi::ts_node_named_descendant_for_point_range(self.p(), start.into(), end.into())
         })
     }
 
     pub fn to_sexp(&self) -> String {
-        let c_string = unsafe { ffi::ts_node_string(self.0) };
+        let c_string = unsafe { ffi::ts_node_string(self.p()) };
         let result = unsafe { CStr::from_ptr(c_string) }
             .to_str()
             .unwrap()
@@ -932,7 +932,7 @@ impl<'tree> Node<'tree> {
 
     /// Create a new [TreeCursor] starting from this node.
     pub fn walk(&self) -> TreeCursor<'tree> {
-        TreeCursor(unsafe { ffi::ts_tree_cursor_new(self.0) }, PhantomData)
+        TreeCursor(unsafe { ffi::ts_tree_cursor_new(self.p()) }, PhantomData)
     }
 
     /// Edit this node to keep it in-sync with source code that has been edited.
@@ -945,6 +945,10 @@ impl<'tree> Node<'tree> {
     pub fn edit(&mut self, edit: &InputEdit) {
         let edit = edit.into();
         unsafe { ffi::ts_node_edit(&mut self.0 as *mut ffi::TSNode, &edit) }
+    }
+
+    fn p(&self) -> *const ffi::TSNode {
+        &self.0 as *const ffi::TSNode
     }
 }
 
@@ -1042,7 +1046,7 @@ impl<'a> TreeCursor<'a> {
 
     /// Re-initialize this tree cursor to start at a different node.
     pub fn reset(&mut self, node: Node<'a>) {
-        unsafe { ffi::ts_tree_cursor_reset(&mut self.0, node.0) };
+        unsafe { ffi::ts_tree_cursor_reset(&mut self.0, node.p()) };
     }
 }
 
@@ -1394,7 +1398,7 @@ impl QueryCursor {
         mut text_callback: impl FnMut(Node<'a>) -> T + 'a,
     ) -> impl Iterator<Item = QueryMatch<'a>> + 'a {
         let ptr = self.0.as_ptr();
-        unsafe { ffi::ts_query_cursor_exec(ptr, query.ptr.as_ptr(), node.0) };
+        unsafe { ffi::ts_query_cursor_exec(ptr, query.ptr.as_ptr(), node.p()) };
         std::iter::from_fn(move || loop {
             unsafe {
                 let mut m = MaybeUninit::<ffi::TSQueryMatch>::uninit();
@@ -1421,7 +1425,7 @@ impl QueryCursor {
         text_callback: impl FnMut(Node<'a>) -> T + 'a,
     ) -> QueryCaptures<'a, T> {
         let ptr = self.0.as_ptr();
-        unsafe { ffi::ts_query_cursor_exec(ptr, query.ptr.as_ptr(), node.0) };
+        unsafe { ffi::ts_query_cursor_exec(ptr, query.ptr.as_ptr(), node.p()) };
         QueryCaptures {
             ptr,
             query,

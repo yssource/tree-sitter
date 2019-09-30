@@ -405,32 +405,32 @@ void ts_tree_print_dot_graph(const TSTree *, FILE *);
 /**
  * Get the node's type as a null-terminated string.
  */
-const char *ts_node_type(TSNode);
+const char *ts_node_type(const TSNode *);
 
 /**
  * Get the node's type as a numerical id.
  */
-TSSymbol ts_node_symbol(TSNode);
+TSSymbol ts_node_symbol(const TSNode *);
 
 /**
  * Get the node's start byte.
  */
-uint32_t ts_node_start_byte(TSNode);
+uint32_t ts_node_start_byte(const TSNode *);
 
 /**
  * Get the node's start position in terms of rows and columns.
  */
-TSPoint ts_node_start_point(TSNode);
+TSPoint ts_node_start_point(const TSNode *);
 
 /**
  * Get the node's end byte.
  */
-uint32_t ts_node_end_byte(TSNode);
+uint32_t ts_node_end_byte(const TSNode *);
 
 /**
  * Get the node's end position in terms of rows and columns.
  */
-TSPoint ts_node_end_point(TSNode);
+TSPoint ts_node_end_point(const TSNode *);
 
 /**
  * Get an S-expression representing the node as a string.
@@ -438,79 +438,79 @@ TSPoint ts_node_end_point(TSNode);
  * This string is allocated with `malloc` and the caller is responsible for
  * freeing it using `free`.
  */
-char *ts_node_string(TSNode);
+char *ts_node_string(const TSNode *);
 
 /**
  * Check if the node is null. Functions like `ts_node_child` and
  * `ts_node_next_sibling` will return a null node to indicate that no such node
  * was found.
  */
-bool ts_node_is_null(TSNode);
+bool ts_node_is_null(const TSNode *);
 
 /**
  * Check if the node is *named*. Named nodes correspond to named rules in the
  * grammar, whereas *anonymous* nodes correspond to string literals in the
  * grammar.
  */
-bool ts_node_is_named(TSNode);
+bool ts_node_is_named(const TSNode *);
 
 /**
  * Check if the node is *missing*. Missing nodes are inserted by the parser in
  * order to recover from certain kinds of syntax errors.
  */
-bool ts_node_is_missing(TSNode);
+bool ts_node_is_missing(const TSNode *);
 
 /**
  * Check if the node is *extra*. Extra nodes represent things like comments,
  * which are not required the grammar, but can appear anywhere.
  */
-bool ts_node_is_extra(TSNode);
+bool ts_node_is_extra(const TSNode *);
 
 /**
  * Check if a syntax node has been edited.
  */
-bool ts_node_has_changes(TSNode);
+bool ts_node_has_changes(const TSNode *);
 
 /**
  * Check if the node is a syntax error or contains any syntax errors.
  */
-bool ts_node_has_error(TSNode);
+bool ts_node_has_error(const TSNode *);
 
 /**
  * Get the node's immediate parent.
  */
-TSNode ts_node_parent(TSNode);
+TSNode ts_node_parent(const TSNode *);
 
 /**
  * Get the node's child at the given index, where zero represents the first
  * child.
  */
-TSNode ts_node_child(TSNode, uint32_t);
+TSNode ts_node_child(const TSNode *, uint32_t);
 
 /**
  * Get the node's number of children.
  */
-uint32_t ts_node_child_count(TSNode);
+uint32_t ts_node_child_count(const TSNode *);
 
 /**
  * Get the node's *named* child at the given index.
  *
  * See also `ts_node_is_named`.
  */
-TSNode ts_node_named_child(TSNode, uint32_t);
+TSNode ts_node_named_child(const TSNode *, uint32_t);
 
 /**
  * Get the node's number of *named* children.
  *
  * See also `ts_node_is_named`.
  */
-uint32_t ts_node_named_child_count(TSNode);
+uint32_t ts_node_named_child_count(const TSNode *);
 
 /**
  * Get the node's child with the given field name.
  */
 TSNode ts_node_child_by_field_name(
-  TSNode self,
+  const TSNode *self,
   const char *field_name,
   uint32_t field_name_length
 );
@@ -521,43 +521,43 @@ TSNode ts_node_child_by_field_name(
  * You can convert a field name to an id using the
  * `ts_language_field_id_for_name` function.
  */
-TSNode ts_node_child_by_field_id(TSNode, TSFieldId);
+TSNode ts_node_child_by_field_id(const TSNode *, TSFieldId);
 
 /**
  * Get the node's next / previous sibling.
  */
-TSNode ts_node_next_sibling(TSNode);
-TSNode ts_node_prev_sibling(TSNode);
+TSNode ts_node_next_sibling(const TSNode *);
+TSNode ts_node_prev_sibling(const TSNode *);
 
 /**
  * Get the node's next / previous *named* sibling.
  */
-TSNode ts_node_next_named_sibling(TSNode);
-TSNode ts_node_prev_named_sibling(TSNode);
+TSNode ts_node_next_named_sibling(const TSNode *);
+TSNode ts_node_prev_named_sibling(const TSNode *);
 
 /**
  * Get the node's first child that extends beyond the given byte offset.
  */
-TSNode ts_node_first_child_for_byte(TSNode, uint32_t);
+TSNode ts_node_first_child_for_byte(const TSNode *, uint32_t);
 
 /**
  * Get the node's first named child that extends beyond the given byte offset.
  */
-TSNode ts_node_first_named_child_for_byte(TSNode, uint32_t);
+TSNode ts_node_first_named_child_for_byte(const TSNode *, uint32_t);
 
 /**
  * Get the smallest node within this node that spans the given range of bytes
  * or (row, column) positions.
  */
-TSNode ts_node_descendant_for_byte_range(TSNode, uint32_t, uint32_t);
-TSNode ts_node_descendant_for_point_range(TSNode, TSPoint, TSPoint);
+TSNode ts_node_descendant_for_byte_range(const TSNode *, uint32_t, uint32_t);
+TSNode ts_node_descendant_for_point_range(const TSNode *, TSPoint, TSPoint);
 
 /**
  * Get the smallest named node within this node that spans the given range of
  * bytes or (row, column) positions.
  */
-TSNode ts_node_named_descendant_for_byte_range(TSNode, uint32_t, uint32_t);
-TSNode ts_node_named_descendant_for_point_range(TSNode, TSPoint, TSPoint);
+TSNode ts_node_named_descendant_for_byte_range(const TSNode *, uint32_t, uint32_t);
+TSNode ts_node_named_descendant_for_point_range(const TSNode *, TSPoint, TSPoint);
 
 /**
  * Edit the node to keep it in-sync with source code that has been edited.
@@ -573,7 +573,7 @@ void ts_node_edit(TSNode *, const TSInputEdit *);
 /**
  * Check if two nodes are identical.
  */
-bool ts_node_eq(TSNode, TSNode);
+bool ts_node_eq(const TSNode *, const TSNode *);
 
 /************************/
 /* Section - TreeCursor */
@@ -586,7 +586,7 @@ bool ts_node_eq(TSNode, TSNode);
  * possible using the `TSNode` functions. It is a mutable object that is always
  * on a certain syntax node, and can be moved imperatively to different nodes.
  */
-TSTreeCursor ts_tree_cursor_new(TSNode);
+TSTreeCursor ts_tree_cursor_new(const TSNode *);
 
 /**
  * Delete a tree cursor, freeing all of the memory that it used.
@@ -596,7 +596,7 @@ void ts_tree_cursor_delete(TSTreeCursor *);
 /**
  * Re-initialize a tree cursor to start at a different node.
  */
-void ts_tree_cursor_reset(TSTreeCursor *, TSNode);
+void ts_tree_cursor_reset(TSTreeCursor *, const TSNode *);
 
 /**
  * Get the tree cursor's current node.
@@ -774,7 +774,7 @@ void ts_query_cursor_delete(TSQueryCursor *);
 /**
  * Start running a given query on a given node.
  */
-void ts_query_cursor_exec(TSQueryCursor *, const TSQuery *, TSNode);
+void ts_query_cursor_exec(TSQueryCursor *, const TSQuery *, const TSNode *);
 
 /**
  * Set the range of bytes or (row, column) positions in which the query

@@ -65,21 +65,21 @@ static inline bool ts_tree_cursor_child_iterator_next(CursorChildIterator *self,
 
 // TSTreeCursor - lifecycle
 
-TSTreeCursor ts_tree_cursor_new(TSNode node) {
+TSTreeCursor ts_tree_cursor_new(const TSNode *node) {
   TSTreeCursor self = {NULL, NULL, {0, 0}};
   ts_tree_cursor_init((TreeCursor *)&self, node);
   return self;
 }
 
-void ts_tree_cursor_reset(TSTreeCursor *_self, TSNode node) {
+void ts_tree_cursor_reset(TSTreeCursor *_self, const TSNode *node) {
   ts_tree_cursor_init((TreeCursor *)_self, node);
 }
 
-void ts_tree_cursor_init(TreeCursor *self, TSNode node) {
-  self->tree = node.tree;
+void ts_tree_cursor_init(TreeCursor *self, const TSNode *node) {
+  self->tree = node->tree;
   array_clear(&self->stack);
   array_push(&self->stack, ((TreeCursorEntry) {
-    .subtree = (const Subtree *)node.id,
+    .subtree = (const Subtree *)node->id,
     .position = {
       ts_node_start_byte(node),
       ts_node_start_point(node)
