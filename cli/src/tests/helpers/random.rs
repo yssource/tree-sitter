@@ -1,9 +1,26 @@
+use lazy_static::lazy_static;
 use rand::distributions::Alphanumeric;
 use rand::prelude::{Rng, SeedableRng, StdRng};
+use std::{env, time};
 
 const OPERATORS: &[char] = &[
     '+', '-', '<', '>', '(', ')', '*', '/', '&', '|', '!', ',', '.',
 ];
+
+lazy_static! {
+    pub static ref SEED: usize = {
+        let seed = env::var("TREE_SITTER_TEST_SEED")
+            .map(|s| usize::from_str_radix(&s, 10).unwrap())
+            .unwrap_or(
+                time::SystemTime::now()
+                    .duration_since(time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs() as usize,
+            );
+        eprintln!("\n\nRandom seed: {}\n", seed);
+        seed
+    };
+}
 
 pub struct Rand(StdRng);
 

@@ -1,7 +1,7 @@
-use super::helpers::fixtures::get_language;
+use super::helpers::{fixtures::get_language, query_helpers::Pattern, random::SEED};
 use lazy_static::lazy_static;
-use std::env;
-use std::fmt::Write;
+use rand::{prelude::StdRng, SeedableRng};
+use std::{env, fmt::Write};
 use tree_sitter::{
     allocations, Language, Node, Parser, Point, Query, QueryCapture, QueryCursor, QueryError,
     QueryErrorKind, QueryMatch, QueryPredicate, QueryPredicateArg, QueryProperty,
@@ -3416,6 +3416,85 @@ fn test_query_alternative_predicate_prefix() {
             source,
             &[(0, vec![("keyword", "DEFUN"), ("function", "\"identity\"")])],
         );
+    });
+}
+
+#[test]
+fn test_query_random() {
+    allocations::record(|| {
+        let language = get_language("rust");
+        let source = r#"
+        pub(crate) fn parse_grammar(input: &str) -> Result<InputGrammar> {
+            let grammar_json: GrammarJSON = serde_json::from_str(&input)?;
+
+            let mut variables = Vec::with_capacity(grammar_json.rules.len());
+            for (name, value) in grammar_json.rules {
+                variables.push(Variable {
+                    name: name.to_owned(),
+                    rule: parse_rule(serde_json::from_value(value)?),
+                })
+            }
+
+            let mut precedence_orderings = Vec::with_capacity(grammar_json.precedences.len());
+            for list in grammar_json.precedences {
+                let mut ordering = Vec::with_capacity(list.len());
+                for entry in list {
+                    ordering.push(match entry {
+                        RuleJSON::STRING { value } => PrecedenceEntry::Name(value),
+                        RuleJSON::SYMBOL { name } => PrecedenceEntry::Symbol(name),
+                        _ => {
+                            return Err(Error::new(
+                                "Invalid rule in precedences array. Only strings and symbols are allowed"
+                                    .to_string(),
+                            ))
+                        }
+                    })
+                }
+                precedence_orderings.push(ordering);
+            }
+
+            let extra_symbols = grammar_json.extras.into_iter().map(parse_rule).collect();
+            let external_tokens = grammar_json.externals.into_iter().map(parse_rule).collect();
+
+            Ok(InputGrammar {
+                name: grammar_json.name,
+                external_tokens,
+            })
+        }
+        "#;
+
+        let mut parser = Parser::new();
+        parser.set_language(language).unwrap();
+        let tree = parser.parse(source, None).unwrap();
+        let mut cursor = QueryCursor::new();
+
+        for i in 0..100 {
+            let seed = *SEED;
+            let mut rand = StdRng::seed_from_u64(seed as u64 + i);
+            let pattern_ast = Pattern::random_pattern_in_tree(&tree, &mut rand);
+            let pattern = pattern_ast.to_string();
+            eprintln!("pattern: {:?}", pattern);
+            let query = Query::new(language, &pattern).unwrap();
+
+            let actual_matches = cursor
+                .matches(&query, tree.root_node(), source.as_bytes())
+                .map(|mat| {
+                    mat.captures
+                        .iter()
+                        .map(|c| (query.capture_names()[c.index as usize].as_str(), c.node))
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>();
+            let expected_matches = pattern_ast
+                .matches_in_tree(&tree)
+                .into_iter()
+                .map(|mat| mat.captures)
+                .collect::<Vec<_>>();
+
+            // dbg!(&actual_matches, &expected_matches);
+
+            assert_eq!(actual_matches, expected_matches, "query: {:?}", pattern);
+        }
     });
 }
 

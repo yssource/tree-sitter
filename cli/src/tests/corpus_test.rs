@@ -1,13 +1,13 @@
 use super::helpers::edits::{get_random_edit, invert_edit};
 use super::helpers::fixtures::{fixtures_dir, get_language, get_test_language};
-use super::helpers::random::Rand;
+use super::helpers::random::{Rand, SEED};
 use super::helpers::scope_sequence::ScopeSequence;
 use crate::generate;
 use crate::parse::perform_edit;
 use crate::test::{parse_tests, print_diff, print_diff_key, strip_sexp_fields, TestEntry};
 use crate::util;
 use lazy_static::lazy_static;
-use std::{env, fs, time, usize};
+use std::{env, fs, usize};
 use tree_sitter::{allocations, LogType, Node, Parser, Tree};
 
 const EDIT_COUNT: usize = 3;
@@ -35,19 +35,10 @@ lazy_static! {
     static ref TRIAL_FILTER: Option<usize> = env::var("TREE_SITTER_TEST_TRIAL_FILTER")
         .map(|s| usize::from_str_radix(&s, 10).unwrap())
         .ok();
-    pub static ref SEED: usize = env::var("TREE_SITTER_TEST_SEED")
-        .map(|s| usize::from_str_radix(&s, 10).unwrap())
-        .unwrap_or(
-            time::SystemTime::now()
-                .duration_since(time::UNIX_EPOCH)
-                .unwrap()
-                .as_secs() as usize,
-        );
 }
 
 #[test]
 fn test_real_language_corpus_files() {
-    eprintln!("\n\nRandom seed: {}\n", *SEED);
     let grammars_dir = fixtures_dir().join("grammars");
     let error_corpus_dir = fixtures_dir().join("error_corpus");
 
